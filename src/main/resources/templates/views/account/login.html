@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>로그인</title>
+<script src="http://code.jquery.com/jquery-latest.min.js"></script>
+<script type="text/javascript">
+
+
+$(document).ready(function() {
+	
+	$("#google").click(function() {
+		window.open("/login/google","pop","width=500,height=500,scrollbars=yes");
+	});
+	$("#fb").click(function(){
+		window.open("/login/facebook","pop","width=500,height=500,scrollbars=yes");
+	});
+	$("#naver").click(function(){
+		window.open("{{apiURL}}","pop","width=500,height=500,scrollbars=yes");
+	})
+	$("#logout").click(function(){
+		$.getJSON("/logout", function(data){
+			location.href="/login";
+		});		
+	});
+});
+</script>
+</head>
+<body>
+
+
+{{account.isLogin()}}
+{% if account.isLogin() == false %}
+<a href="javascript:void(0);" id="google"><img src="/img/btn/btn_google_login.gif"/></a> 
+<a href="javascript:void(0);" id="fb"><img src="/img/btn/btn_fb_login.gif"/></a>
+<a href="javascript:void(0);" id="naver"><img height="50" src="http://static.nid.naver.com/oauth/small_g_in.PNG"/></a>
+{% else %}
+<a href="javascript:void(0);" id="logout">로그아웃</a>
+{% endif %}
+
+
+
+</body>
+</html>

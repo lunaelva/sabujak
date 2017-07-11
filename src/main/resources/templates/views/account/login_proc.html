@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<script src="http://code.jquery.com/jquery-latest.min.js"></script>
+<script type="text/javascript">
+{% if account.isLogin() == true %}
+	{% if account.getMemberType() == "FACEBOOK" %}
+	location.href="/";
+	{% else %}
+	window.opener.location = "/";
+	window.close();
+	{% endif %}
+{% endif %}
+</script>
+</head>
+<body>
+{{account.isLogin()}}
+{{account.getMemberType()}}
+아아아아!!! 로그인 되따!!!
+</body>
+</html> 

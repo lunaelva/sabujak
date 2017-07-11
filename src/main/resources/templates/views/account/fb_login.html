@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>로그인</title>
+<script src="http://code.jquery.com/jquery-latest.min.js"></script>
+<script type="text/javascript">
+	$(document).ready(function(){
+		$("#fb_login_form").submit();
+	});
+</script>
+</head>
+<body>
+
+<form id="fb_login_form" action="/connect/facebook" method="POST">
+<input type="hidden" name="display" value="popup"/>
+</form>
+	
+</body>
+</html>

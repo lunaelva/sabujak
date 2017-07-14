@@ -1,0 +1,34 @@
+{% extends "layout" %}
+
+{% block content %}
+<link href="/css/marked_mig.css" rel="stylesheet">
+<script src="/js/markdown/marked.js"></script>
+<div>
+	<p>제목 : <input type="text" name="title"></p>
+</div>
+<div id="editor">
+	<textarea id="input"></textarea>
+	<div id="result"></div>
+</div>
+<div>
+	<a href="javascript:save();">저장</a>
+</div>
+
+<script type="text/javascript">
+document.getElementById('input').onkeyup = function(e) {
+	document.getElementById('result').innerHTML =
+    	marked(document.getElementById('input').value);
+};
+
+function save(){
+	jQuery.post("/post/save",{"title":$("input[name='title']").val()
+		, "content":$("#input").val()}	
+		,function(data){
+			alert("내 마음 속에 저장!");
+	}).fail(function(code,message){   
+		alert("code:"+code.status+"\n"+"message:"+message.message);
+		console.log(message);
+	});
+}
+</script>
+{% endblock %}

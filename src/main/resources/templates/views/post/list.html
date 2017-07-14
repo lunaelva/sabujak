@@ -1,0 +1,28 @@
+{% extends "layout" %}
+
+{% block content %}
+<script type="text/javascript">
+
+</script>
+
+<table>
+	<tr>
+		<th>글번호</th>
+		<th>제목</th>
+		<th>글쓴이</th>
+		<th>날짜</th>
+	</tr>	
+	{% for post in list %}
+	<tr>
+		<td>{{post.pId}}</td>
+		<td><a href="/post/view/{{post.pId}}">{{post.title}}</a></td>
+		<td>{{post.writer}}</td>
+		<td>{{post.occTime}}</td>
+	</tr>
+	{% else %}	    
+	<tr>
+		<td colspan="4">내용 없음.</td>
+	</tr>
+	{% endfor %}
+</table>
+{% endblock %}

@@ -3,17 +3,15 @@ package com.lunamaan.account.controller;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
-import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.json.simple.JSONObject;
+import org.json.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -41,9 +39,10 @@ import org.springframework.web.client.RestTemplate;
 
 import com.lunamaan.account.entity.Member;
 import com.lunamaan.account.model.MemberSession;
-import com.lunamaan.account.repository.MemberRepository;
 import com.lunamaan.account.model.MemberType;
-import com.lunamaan.account.util.NaverApiComponent;
+import com.lunamaan.account.model.Naver;
+import com.lunamaan.account.repository.MemberRepository;
+
 
 @Controller
 public class LoginController {
@@ -60,15 +59,11 @@ public class LoginController {
 	@Autowired
 	private OAuth2Parameters googleOAuth2Parameters;
 	
-	@Autowired
-	private NaverApiComponent naverApiComponent;
-	RestTemplate restTemplate = new RestTemplate();
+	private RestTemplate restTemplate = new RestTemplate();
 	
-	@Value("${naver.app.id}")
-	private String naverId;
+	@Autowired
+	private Naver naverConnectionFactory;
 
-	@Value("${naver.app.secret}")
-	private String naverSecret;
 	
 	public LoginController(Facebook facebook, ConnectionRepository connectionRepository) {
         this.facebook = facebook;
@@ -104,7 +99,7 @@ public class LoginController {
 	    String state = new BigInteger(130, random).toString();	    
 	    session.setAttribute("state", state);
 	    
-		model.addAttribute("apiURL", naverApiComponent.makeLoginUrl(state));
+		model.addAttribute("apiURL", naverConnectionFactory.getLoginUrl(state));
 		    
 		return "account/login";
 	}
@@ -189,10 +184,33 @@ public class LoginController {
 	}
 	
 	private String naverCalback(String state, String code){
-	 	ResponseEntity<String> response = restTemplate.getForEntity(naverApiComponent.makeTokenUrl(state, code), String.class);
+	 	ResponseEntity<String> response = restTemplate.getForEntity(naverConnectionFactory.getTokenUrl(state, code), String.class);
 		// 응답코드 확인
 	 
 		String responseStr = response.getBody();
+		JSONObject jsonObj = getJsonObject(responseStr);
+		String token = (String) jsonObj.get("access_token");
+		
+		
+		if(token.isEmpty()){
+			return "";			
+		}
+		
+		String header = "Bearer " + token; // Bearer 다음에 공백 추가
+		HttpHeaders headers = new HttpHeaders();		  
+		headers.set("Authorization", header);
+		
+		HttpEntity<String> entity = new HttpEntity<String>("parameters", headers);
+		response = restTemplate.postForEntity(naverConnectionFactory.getProfileUrl(), entity, String.class);
+		
+		responseStr = response.getBody();
+		jsonObj = getJsonObject(responseStr);
+		jsonObj = (JSONObject) jsonObj.get("response");
+		
+		return (String) jsonObj.get("id");
+	}
+
+	private JSONObject getJsonObject(String responseStr) {
 		JSONParser jsonParser = new JSONParser();
 		JSONObject jsonObj = null;
 		try {
@@ -200,28 +218,10 @@ public class LoginController {
 		} catch (ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			return null;
 		} 
-		
-		String token = (String) jsonObj.get("access_token");
-		
-		String header = "Bearer " + token; // Bearer 다음에 공백 추가
-		HttpHeaders headers = new HttpHeaders();		  
-		headers.set("Authorization", header);
-		
-		HttpEntity<String> entity = new HttpEntity<String>("parameters", headers);
-		response = restTemplate.postForEntity(naverApiComponent.makeProfileUrl(), entity, String.class);
-		
-		responseStr = response.getBody();
-		jsonParser = new JSONParser();
-		jsonObj = null;
-		try {
-			jsonObj = (JSONObject)jsonParser.parse(responseStr);
-			jsonObj = (JSONObject) jsonObj.get("response");
-		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} 
-		
-		return (String) jsonObj.get("id");
+		return jsonObj;
 	}
+	
 }
+

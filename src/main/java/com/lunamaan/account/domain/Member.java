@@ -1,4 +1,4 @@
-package com.lunamaan.account.entity;
+package com.lunamaan.account.domain;
 
 import java.time.LocalDateTime;
 
@@ -7,7 +7,6 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Lob;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
@@ -28,14 +27,17 @@ public class Member {
 	@SequenceGenerator(name="seq", sequenceName="member_no_seq", allocationSize=1)
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator="seq")
 	private long mId;
-	
-	@Lob
-	@Column(name="social_Id",unique = true )
+	@Column(name="member_social_Id")
 	private String mSocialId;
-	@Column(name="member_type",unique = true )
-	private int mType; 
-	private int status;
+	@Column(name="member_social_type")
+	private int mSocialType;
+	@Column(name="member_nickname",unique = true)
+	private String nickname;
+	@Column(name="grade")
+	private int grade; //0-일반, 1-관리자
+	@Column(name="reg_date")
 	private LocalDateTime regDate;
+	@Column(name="update_date")
 	private LocalDateTime updateDate;
 	
 }

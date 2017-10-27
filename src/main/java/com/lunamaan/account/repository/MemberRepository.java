@@ -2,8 +2,8 @@ package com.lunamaan.account.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.lunamaan.account.entity.Member;
+import com.lunamaan.account.domain.Member;
 
 public interface MemberRepository extends JpaRepository<Member, Long>{
-	Member findByMSocialIdAndMType(String mSocialId, int mType);
+	Member findByMSocialIdAndMSocialType(String mSocialId, int mSocialType);
 }

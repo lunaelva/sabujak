@@ -7,7 +7,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.lunamaan.account.entity.Member;
+import com.lunamaan.account.domain.Member;
 import com.lunamaan.account.repository.MemberRepository;
 
 @Controller

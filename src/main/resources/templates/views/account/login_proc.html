@@ -5,8 +5,9 @@
 <title>Insert title here</title>
 <script src="http://code.jquery.com/jquery-latest.min.js"></script>
 <script type="text/javascript">
-{% if account.isLogin() == true %}
-	{% if account.getMemberType() == "FACEBOOK" %}
+{% if member.isLogin() == true %}
+alert(member.getMemberType());
+	{% if member.getMemberType() == "FACEBOOK" %}
 	location.href="/";
 	{% else %}
 	window.opener.location = "/";
@@ -16,8 +17,8 @@
 </script>
 </head>
 <body>
-{{account.isLogin()}}
-{{account.getMemberType()}}
+{{member.isLogin()}}
+{{member.getMemberType()}}
 아아아아!!! 로그인 되따!!!
 </body>
 </html> 

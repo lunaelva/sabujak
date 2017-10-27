@@ -8,6 +8,7 @@ import lombok.Setter;
 public class MemberSession {
 	private int id;
 	private boolean login = false;
-	private MemberType memberType;
-	
+	private SocialType socialType;
+	private String socialId;
+	private int memberGrade;
 }

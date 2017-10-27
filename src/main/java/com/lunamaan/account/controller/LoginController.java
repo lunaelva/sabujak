@@ -30,6 +30,7 @@ import org.springframework.social.oauth2.OAuth2Operations;
 import org.springframework.social.oauth2.OAuth2Parameters;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -37,10 +38,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestTemplate;
 
-import com.lunamaan.account.entity.Member;
+import com.lunamaan.account.domain.Member;
 import com.lunamaan.account.model.MemberSession;
-import com.lunamaan.account.model.MemberType;
 import com.lunamaan.account.model.Naver;
+import com.lunamaan.account.model.SocialType;
 import com.lunamaan.account.repository.MemberRepository;
 
 
@@ -70,6 +71,29 @@ public class LoginController {
         this.connectionRepository = connectionRepository;
     }
 	
+	@RequestMapping("/login")
+	public String singin(Model model, HttpSession session, @RequestParam(value="returnUrl", defaultValue="") String returnUrl){
+		MemberSession memberSession = (MemberSession) session.getAttribute("memberSession");
+
+		if(memberSession == null){
+			memberSession = new MemberSession();
+			memberSession.setLogin(false);
+		}
+		
+		model.addAttribute("account", memberSession);
+		
+
+	    SecureRandom random = new SecureRandom();
+	    String state = new BigInteger(130, random).toString();	    
+	    session.setAttribute("state", state);
+	    
+		model.addAttribute("apiURL", naverConnectionFactory.getLoginUrl(state));
+		model.addAttribute("returnUrl", returnUrl);
+		    
+		return "account/login";
+	}
+	
+	
 	@RequestMapping("/login/google")
 	public String ggSingin(Model model, HttpSession session){
 		OAuth2Operations oauthOperations = googleConnectionFactory.getOAuthOperations();
@@ -80,29 +104,10 @@ public class LoginController {
 	
 	@RequestMapping("/login/facebook")
 	public String fbSingin(Model model, HttpSession session){
-		return "account/fb_login";
+		return "account/login_fb";
 	}
 	
-	@RequestMapping("/login")
-	public String singin(Model model, HttpSession session){
-
-		MemberSession memberSession = (MemberSession) session.getAttribute("memberSession");
-
-		if(memberSession == null){
-			memberSession = new MemberSession();
-			memberSession.setLogin(false);
-		}
-		model.addAttribute("account", memberSession);
-		
-
-	    SecureRandom random = new SecureRandom();
-	    String state = new BigInteger(130, random).toString();	    
-	    session.setAttribute("state", state);
-	    
-		model.addAttribute("apiURL", naverConnectionFactory.getLoginUrl(state));
-		    
-		return "account/login";
-	}
+	
 	
 	@RequestMapping(value = "/login/{socialDomain}/callback", method = RequestMethod.GET)
 	public String loginCallback(Model model, HttpSession session,
@@ -112,43 +117,36 @@ public class LoginController {
 			@RequestParam(value = "state", required = false) String state,
 			HttpServletRequest request, HttpServletResponse response){
 	 
-		MemberType memberType = MemberType.getMemberType(socialDomain);
+		SocialType socialType = SocialType.getSocialType(socialDomain);
 		model.addAttribute("error", error);
 		
 		String socialId = "";
-		if(memberType== MemberType.FACEBOOK){
+		if(socialType== SocialType.FACEBOOK){
 			socialId = fbCallback();
-		}else if(memberType == MemberType.GOOGLE){
+		}else if(socialType == SocialType.GOOGLE){
 			socialId = ggCalback(code);
-		}else if(memberType == MemberType.NAVER){
+		}else if(socialType == SocialType.NAVER){
 			socialId = naverCalback(state, code);
 		}
-		System.out.println("socialDomain : " + socialDomain);
-		Member member = null;
-		if(socialId != null && !socialId.equals("")){
-			member = memberRepository.findByMSocialIdAndMType(socialId, memberType.getValue());
-		}
 		
-		if(member == null){							
-			member = new Member();
-			member.setMSocialId(socialId);
-			member.setMType(memberType.getValue());
-			member.setRegDate(LocalDateTime.now());
-			member.setUpdateDate(LocalDateTime.now());
-			memberRepository.save(member);
+		if(!StringUtils.isEmpty(error)){
+			model.addAttribute("rtnType", "error");
+			model.addAttribute("msg", error);
+			return "account/login_pr";
 		}
 		
 		MemberSession memberSession = (MemberSession) session.getAttribute("memberSession");
 		if(memberSession == null){
-			memberSession = new MemberSession();
-			memberSession.setMemberType(memberType);
-			memberSession.setLogin(true);
-			session.setAttribute("accountSession", memberSession);
-			memberSession = (MemberSession) session.getAttribute("memberSession");
+			memberSession = new MemberSession();			
 		}
 		
+		memberSession.setSocialType(socialType);
+		memberSession.setLogin(true);
+		session.setAttribute("accountSession", memberSession);
+		memberSession = (MemberSession) session.getAttribute("memberSession");
+		
 		model.addAttribute("account", memberSession);
-		return "account/login_proc";
+		return "account/login_pr";
 	}
 				  
 	
@@ -160,7 +158,7 @@ public class LoginController {
 	
 	private String fbCallback(){
 		if (connectionRepository.findPrimaryConnection(Facebook.class) == null) {
-			return "redirect:/connect/facebook";
+			return "";
 		}
 	
 		String [] fields = { "id", "email", "name" }; //Depends on which field you want.

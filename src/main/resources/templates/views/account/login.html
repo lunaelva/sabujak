@@ -18,23 +18,19 @@ $(document).ready(function() {
 	$("#naver").click(function(){
 		window.open("{{apiURL}}","pop","width=500,height=500,scrollbars=yes");
 	})
-	$("#logout").click(function(){
-		$.getJSON("/logout", function(data){
-			location.href="/login";
-		});		
-	});
 });
 </script>
 </head>
 <body>
+{{memberSession.login}}
+{{memberSession.isLogin()}}
 
-
-{% if account.isLogin() == false %}
+{% if memberSession.isLogin() == true %}
+<a href="/logout" id="logout">로그아웃</a>
+{% else %}
 <a href="javascript:void(0);" id="google"><img src="/img/btn/btn_google_login.gif"/></a> 
 <a href="javascript:void(0);" id="fb"><img src="/img/btn/btn_fb_login.gif"/></a>
 <a href="javascript:void(0);" id="naver"><img height="50" src="http://static.nid.naver.com/oauth/small_g_in.PNG"/></a>
-{% else %}
-<a href="javascript:void(0);" id="logout">로그아웃</a>
 {% endif %}
 
 
